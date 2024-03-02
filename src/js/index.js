@@ -1,10 +1,9 @@
 import QRReader from './vendor/qrscan.js';
 import snackbar from './snackbar.js';
-import { isURL, hasProtocolInUrl } from './utils';
 
 import '../css/styles.css';
 
-//If service worker is installed, show offline usage notification
+/* If service worker is installed, show offline usage notification
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -21,6 +20,7 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
 window.addEventListener('DOMContentLoaded', () => {
   //To check the device and add iOS support
@@ -28,70 +28,67 @@ window.addEventListener('DOMContentLoaded', () => {
   window.isMediaStreamAPISupported = navigator && navigator.mediaDevices && 'enumerateDevices' in navigator.mediaDevices;
   window.noCameraPermission = false;
 
-  var copiedText = null;
   var frame = null;
-  var selectPhotoBtn = document.querySelector('.app__select-photos');
-  var dialogElement = document.querySelector('.app__dialog');
-  var dialogOverlayElement = document.querySelector('.app__dialog-overlay');
-  var dialogOpenBtnElement = document.querySelector('.app__dialog-open');
-  var dialogCloseBtnElement = document.querySelector('.app__dialog-close');
+  var dialogSedekah = false;
   var scanningEle = document.querySelector('.custom-scanner');
   var appScanningEle = document.querySelector('.app__scanner-img');
-  var textBoxEle = document.querySelector('#result');
 
-  var helpTextEle = document.querySelector('.app__help-text');
-  var infoSvg = document.querySelector('.app__header-icon svg');
-  var videoElement = document.querySelector('video');
-
-  var headerIcon = document.querySelector('.app__header-icon');
+  var infoUser = document.querySelector('.app__infouser');
   var infoDialogElement = document.querySelector('.app__infodialog');
   var infoDialogCloseBtnElement = document.querySelector('.app__infodialog-close');
   var infoDialogOverlayElement = document.querySelector('.app__infodialog-overlay');
 
+  var dialogResultElement = document.querySelector('.app__dialog_result');
+  var dialogResultOverlayElement = document.querySelector('.app__dialog_result-overlay');
+  var dialogScanResult = document.querySelector('#scanresult');
+  var dialogResultCloseBtnElement = document.querySelector('.app__dialog_result-close');
+  dialogResultCloseBtnElement.addEventListener('click', closeDialogResult, false);
+
+  var dialogSedekahElement = document.querySelector('.app__dialog_sedekah');
+  var dialogSedekahOverlayElement = document.querySelector('.app__dialog_sedekah-overlay');
+  var dialogSedekahYesBtnElement = document.querySelector('.app__dialog_sedekah-yes');
+  var dialogSedekahCloseBtnElement = document.querySelector('.app__dialog_sedekah-close');
+  dialogSedekahYesBtnElement.addEventListener('click', yesDialogSedekah, false);
+  dialogSedekahCloseBtnElement.addEventListener('click', closeDialogSedekah, false);
+
+  var dialogThanksElement = document.querySelector('.app__dialog_thanks');
+  var dialogThanksOverlayElement = document.querySelector('.app__dialog_thanks-overlay');
+  var dialogThanksCloseBtnElement = document.querySelector('.app__dialog_thanks-close');
+  dialogThanksCloseBtnElement.addEventListener('click', closeDialogThanks, false);
+
+  var userName = document.querySelector('#username');
+  var userPoin = document.querySelector('#userpoin');
+
   window.appOverlay = document.querySelector('.app__overlay');
 
-  //Initializing qr scanner
   window.addEventListener('load', (event) => {
-    QRReader.init(); //To initialize QR Scanner
-    // Set camera overlay size
+    QRReader.init();
     setTimeout(() => {
       setCameraOverlay();
       if (window.isMediaStreamAPISupported) {
         scan();
       }
     }, 1000);
-
-    // To support other browsers who dont have mediaStreamAPI
-    selectFromPhoto();
   });
 
   function setCameraOverlay() {
     window.appOverlay.style.borderStyle = 'solid';
   }
 
-  function createFrame() {
-    frame = document.createElement('img');
-    frame.src = '';
-    frame.id = 'frame';
+  infoDialogCloseBtnElement.addEventListener('click', closeInfoDialog, false);
+  infoUser.addEventListener('click', showInfo, false);
+
+  const loader = document.querySelector("#loading");
+
+  function displayLoading() {
+      loader.classList.add("display");
+      setTimeout(() => {
+          loader.classList.remove("display");
+      }, 10000);
   }
 
-  //Dialog close btn event
-  dialogCloseBtnElement.addEventListener('click', hideDialog, false);
-  infoDialogCloseBtnElement.addEventListener('click', closeInfoDialog, false);
-  dialogOpenBtnElement.addEventListener('click', openInBrowser, false);
-  headerIcon.addEventListener('click', showInfo, false);
-
-  //To open result in browser
-  function openInBrowser() {
-    // console.log('Result: ', copiedText);
-
-    if (!hasProtocolInUrl(copiedText)) {
-      copiedText = `//${copiedText}`;
-    }
-
-    window.open(copiedText, '_blank', 'toolbar=0,location=0,menubar=0');
-    copiedText = null;
-    hideDialog();
+  function hideLoading() {
+      loader.classList.remove("display");
   }
 
   //Scan
@@ -107,69 +104,71 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     QRReader.scan((result) => {
-      copiedText = result;
-      textBoxEle.value = result;
-      textBoxEle.select();
       scanningEle.style.display = 'none';
       appScanningEle.style.display = 'none';
-      if (isURL(result)) {
-        dialogOpenBtnElement.style.display = 'inline-block';
-      }
-      dialogElement.classList.remove('app__dialog--hide');
-      dialogOverlayElement.classList.remove('app__dialog--hide');
+
+      displayLoading();
+      var apiUrl = 'https://daftar.terasdakwah.com/apis/v1/attendance/fill';
+      var data = {
+        token_id: token_id,
+        qr_data: result
+      };
+
+      var requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      };
+      
+      fetch(apiUrl, requestOptions)
+        .then(response => {
+          hideLoading();
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          dialogScanResult.innerHTML = data.status;
+          showDialogResult();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }, forSelectedPhotos);
-  }
 
-  //Hide dialog
-  function hideDialog() {
-    copiedText = null;
-    textBoxEle.value = '';
+    displayLoading();
+    var apiUrl = 'https://daftar.terasdakwah.com/apis/v1/user/data';
+    var data = {
+      token_id: token_id
+    };
 
-    if (!window.isMediaStreamAPISupported) {
-      frame.src = '';
-      frame.className = '';
-    }
-
-    dialogElement.classList.add('app__dialog--hide');
-    dialogOverlayElement.classList.add('app__dialog--hide');
-    scan();
-  }
-
-  function selectFromPhoto() {
-    //Creating the camera element
-    var camera = document.createElement('input');
-    camera.setAttribute('type', 'file');
-    camera.setAttribute('capture', 'camera');
-    camera.id = 'camera';
-    window.appOverlay.style.borderStyle = '';
-    selectPhotoBtn.style.display = 'flex';
-    createFrame();
-
-    //Add the camera and img element to DOM
-    var pageContentElement = document.querySelector('.app__layout-content');
-    pageContentElement.appendChild(camera);
-    pageContentElement.appendChild(frame);
-
-    //Click of camera fab icon
-    selectPhotoBtn.addEventListener('click', () => {
-      scanningEle.style.display = 'none';
-      appScanningEle.style.display = 'none';
-      document.querySelector('#camera').click();
-    });
-
-    //On camera change
-    camera.addEventListener('change', (event) => {
-      if (event.target && event.target.files.length > 0) {
-        frame.className = 'app__overlay';
-        frame.src = URL.createObjectURL(event.target.files[0]);
-        if (!window.noCameraPermission) {
-          scanningEle.style.display = 'block';
-          appScanningEle.style.display = 'block';
+    var requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    };
+    
+    fetch(apiUrl, requestOptions)
+      .then(response => {
+        hideLoading();
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
-        window.appOverlay.style.borderColor = 'rgb(62, 78, 184)';
-        scan(true);
-      }
-    });
+        return response.json();
+      })
+      .then(data => {
+        userName.innerHTML = data.data.name;
+        userPoin.innerHTML = data.data.poin;
+        dialogSedekah = data.data.sedekah;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
   }
 
   function showInfo() {
@@ -180,5 +179,84 @@ window.addEventListener('DOMContentLoaded', () => {
   function closeInfoDialog() {
     infoDialogElement.classList.add('app__infodialog--hide');
     infoDialogOverlayElement.classList.add('app__infodialog--hide');
+  }
+
+  function showDialogResult() {
+    dialogResultElement.classList.remove('app__dialog_result--hide');
+    dialogResultOverlayElement.classList.remove('app__dialog_result--hide');
+  }
+
+  function closeDialogResult() {
+    dialogResultElement.classList.add('app__dialog_result--hide');
+    dialogResultOverlayElement.classList.add('app__dialog_result--hide');
+  
+    if (!dialogSedekah){
+      showDialogSedekah();
+    }else{
+      if (!window.isMediaStreamAPISupported) {
+        frame.src = '';
+        frame.className = '';
+      }
+      scan();
+    }
+  }
+
+  function showDialogSedekah() {
+    dialogSedekahElement.classList.remove('app__dialog_sedekah--hide');
+    dialogSedekahOverlayElement.classList.remove('app__dialog_sedekah--hide');
+  }
+
+  function yesDialogSedekah(){
+    displayLoading();
+    var apiUrl = 'https://daftar.terasdakwah.com/apis/v1/user/sedekah';
+    var data = {
+      token_id: token_id,
+      sedekah: true
+    };
+  
+    var requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    };
+
+    fetch(apiUrl, requestOptions)
+      .then(response => {
+        hideLoading();
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        closeDialogSedekah();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  function closeDialogSedekah() {
+    dialogSedekahElement.classList.add('app__dialog_sedekah--hide');
+    dialogSedekahOverlayElement.classList.add('app__dialog_sedekah--hide');
+    showDialogThanks();
+  }
+
+  function showDialogThanks() {
+    dialogThanksElement.classList.remove('app__dialog_thanks--hide');
+    dialogThanksOverlayElement.classList.remove('app__dialog_thanks--hide');
+  }
+
+  function closeDialogThanks() {
+    dialogThanksElement.classList.add('app__dialog_thanks--hide');
+    dialogThanksOverlayElement.classList.add('app__dialog_thanks--hide');
+
+    if (!window.isMediaStreamAPISupported) {
+      frame.src = '';
+      frame.className = '';
+    }
+    scan();
   }
 });

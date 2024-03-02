@@ -16,7 +16,7 @@ export default {
 		},
 	],
 	plugins: [
-		del({ targets: ['public/workbox-*.js', 'public/sw.js', 'public/bundle.js', 'public/bundle.css'] }),
+		del({ targets: ['public/workbox-*.js', 'public/service-worker.js', 'public/bundle.js', 'public/bundle.css'] }),
 		css({ output: 'bundle.css' }),
 		terser(),
 		isProd &&
@@ -27,7 +27,7 @@ export default {
 				skipWaiting: true,
 				runtimeCaching: [
 					{
-						urlPattern: isProd ? /https:\/\/qrcodescan.in\// : /http:\/\/localhost:5000\//,
+						urlPattern: isProd ? /https:\/\/app.terasdakwah.com\// : /http:\/\/localhost:5000\//,
 						handler: 'CacheFirst',
 						options: {
 							cacheName: 'pages',

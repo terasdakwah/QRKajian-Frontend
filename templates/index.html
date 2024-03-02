@@ -2,9 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>QR Code Scanner</title>
+    <title>Teras Dakwah</title>
     <meta http-equiv=X-UA-Compatible content="IE=edge">
-    <meta name=description content="QR Code Scanner is the fastest and most user-friendly web application.">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="QR Scanner" />
@@ -12,14 +11,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="QR Scanner" />
     <meta name="msapplication-TileColor" content="#e4e4e4" />
-    <meta name="msapplication-TileImage" content="/images/touch/mstile-150x150.png" />
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='images/touch/mstile-150x150.png') }}" />
     <meta name="theme-color" content="#e4e4e4" />
-    <link rel="apple-touch-icon" href="/images/touch/apple-touch-icon.jpg" />
-    <link rel="icon" type="image/png" href="/images/touch/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="/images/touch/favicon-16x16.png" sizes="16x16" />
-    <link rel="shortcut icon" href="/images/touch/favicon.ico">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="bundle.css">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/touch/apple-touch-icon.jpg') }}" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/touch/favicon-32x32.png') }}" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/touch/favicon-16x16.png') }}" sizes="16x16" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/touch/favicon.ico') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='js/manifest.json') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bundle.css') }}">
     <link rel="preload" as="script" href="decoder.js">
     <style>
     .title-bar {
@@ -51,7 +50,7 @@
     <div class="app__layout">
       <!-- Header -->
       <header class="app__header">
-          <img src="images/terasdakwah.jpg" />
+          <img src="{{ url_for('static', filename='images/terasdakwah.jpg') }}" />
       </header>
 
       <main class="app__layout-content">
@@ -143,8 +142,8 @@
       crossorigin="anonymous">
     </script>
     <script>
-      var token_id = "65e25e169bfb2e550c6a5837";
+      var token_id = "{{ token_id }}";
     </script>
-    <script src="bundle.js"></script>
+    <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
   </body>
 </html>
