@@ -1,0 +1,9 @@
+import os
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+MONGODB_HOST = os.environ.get('MONGODB_HOST')
+MONGODB_PORT = 27017
+MONGODB_DB   = "td_qrkajian"
+MONGODB_USERNAME = os.environ.get('MONGODB_USERNAME')
+MONGODB_PASSWORD = os.environ.get('MONGODB_PASSWORD')
