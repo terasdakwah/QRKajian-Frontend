@@ -1,5 +1,0 @@
-SECRET_KEY = "powerful secretkey"
-
-MONGODB_HOST = "localhost"
-MONGODB_PORT = 27017
-MONGODB_DB   = "td_qrkajian"
